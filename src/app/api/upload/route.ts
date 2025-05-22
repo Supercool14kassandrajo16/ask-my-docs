@@ -7,11 +7,15 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 export async function POST(req: Request) {
   try {
-    // 0. load pdfjs-dist and polyfill DOMMatrix
-    ;(globalThis as any).DOMMatrix ??= class DOMMatrix {};
-    const { getDocument } = await import(
-      /* webpackIgnore: true */ 'pdfjs-dist/legacy/build/pdf.mjs'
-    );
+
+// 0. load pdfjs-dist (no worker)
+  const pdfjsLib = await import(
+  /* webpackIgnore: true */ 'pdfjs-dist/legacy/build/pdf.mjs'
+);
+// turn off both real and fake workers
+;(pdfjsLib.GlobalWorkerOptions as any).disableWorker = true;
+  const { getDocument } = pdfjsLib;
+
 
     // 1. grab the file
     const form = await req.formData();
